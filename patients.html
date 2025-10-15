@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Salma | Patient Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0e0e10; color: #e0e0e0; font-family: 'Roboto', sans-serif; line-height: 1.8; }
+    header { background: #1a1a1d; padding: 20px 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+    nav ul { display: flex; justify-content: center; list-style: none; gap: 40px; }
+    nav a { color: #e0e0e0; text-decoration: none; font-size: 1rem; letter-spacing: 1px; transition: color 0.3s; }
+    nav a:hover { color: #a37acc; }
+    section { padding: 60px 20px; max-width: 1000px; margin: auto; }
+
+    .hero { text-align: center; padding: 100px 20px; }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: 3rem; color: #c58aff; margin-bottom: 15px; }
+    .hero p { font-size: 1.2rem; color: #d0d0d0; }
+
+    .dashboard-container { margin-top: 50px; }
+    .patient-card { background: #1a1a1d; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 0 20px rgba(170,112,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .patient-card:hover { transform: translateY(-5px); box-shadow: 0 0 25px rgba(170,112,255,0.3); }
+    .patient-card h2 { color: #c58aff; margin-bottom: 15px; }
+
+    label { display: block; margin-top: 10px; font-weight: bold; color: #a37acc; }
+    input, textarea { width: 100%; padding: 10px; border: none; background: #292933; color: #e0e0e0; border-radius: 8px; margin-top: 5px; }
+
+    button.save-btn { background: #c58aff; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: background 0.3s; }
+    button.save-btn:hover { background: #a37acc; }
+
+    .download-btn { background: #4a2f77; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
+    .download-btn:hover { background: #6b4bbf; }
+
+    @media(max-width:768px){
+      nav ul{flex-direction:column;gap:15px;}
+      .hero h1{font-size:2rem;}
+      .patient-card{padding:20px;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="#dashboard">Patients</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Patient Management Dashboard</h1>
+  <p>Welcome, Dr. Salma. Manage your client records, treatment stages, and share progress with ease.</p>
+</section>
+
+<section id="dashboard" class="dashboard-container">
+  <div id="patientList"></div>
+</section>
+
+<script>
+  const patients = [
+    { name: 'Jane Doe', stage: 'Phase 1 – Hydration', focus: 'Barrier Repair, Moisture Balance', action: 'Daily hydrating cleanser + ceramide moisturizer + SPF.', id: 1 },
+    { name: 'John Smith', stage: 'Phase 2 – Acne Control', focus: 'Inflammation reduction', action: 'Nightly retinoid + morning niacinamide serum.', id: 2 },
+    { name: 'Ada Nwoke', stage: 'Phase 3 – Brightening', focus: 'Even tone, texture refinement', action: 'Vitamin C serum + gentle exfoliation twice weekly.', id: 3 }
+  ];
+
+  const patientList = document.getElementById('patientList');
+
+  function renderPatients() {
+    patientList.innerHTML = '';
+    patients.forEach(patient => {
+      const card = document.createElement('div');
+      card.classList.add('patient-card');
+      card.setAttribute('id', `patient-${patient.id}`);
+      card.innerHTML = `
+        <h2>${patient.name}</h2>
+        <label>Stage</label>
+        <input type="text" value="${patient.stage}" id="stage-${patient.id}">
+        <label>Focus Area</label>
+        <textarea id="focus-${patient.id}">${patient.focus}</textarea>
+        <label>Action Plan</label>
+        <textarea id="action-${patient.id}">${patient.action}</textarea>
+        <button class="save-btn" onclick="savePatient(${patient.id})">Save Changes</button>
+        <button class="download-btn" onclick="downloadPatient(${patient.id}, 'image')">Download as Image</button>
+        <button class="download-btn" onclick="downloadPatient(${patient.id}, 'pdf')">Download as PDF</button>
+      `;
+      patientList.appendChild(card);
+    });
+  }
+
+  function savePatient(id) {
+    const stage = document.getElementById(`stage-${id}`).value;
+    const focus = document.getElementById(`focus-${id}`).value;
+    const action = document.getElementById(`action-${id}`).value;
+    alert(`Changes saved for patient ID ${id}:\nStage: ${stage}\nFocus: ${focus}\nAction: ${action}`);
+  }
+
+  async function downloadPatient(id, type) {
+    const card = document.getElementById(`patient-${id}`);
+    if (type === 'image') {
+      html2canvas(card).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `${patients.find(p=>p.id===id).name}_summary.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    } else if (type === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      await html2canvas(card).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 500;
+        const pageHeight = 842;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let position = 40;
+        pdf.addImage(imgData, 'PNG', 40, position, imgWidth, imgHeight);
+        pdf.save(`${patients.find(p=>p.id===id).name}_summary.pdf`);
+      });
+    }
+  }
+
+  renderPatients();
+</script>
+
+</body>
+</html>
